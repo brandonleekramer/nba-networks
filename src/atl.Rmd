@@ -1,0 +1,114 @@
+---
+title: "ATL Teammate Network"
+author: "Brandon L. Kramer"
+date: "12/24/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+rm(list = ls())
+for (pkg in c("tidyverse", "plotly","igraph", "networkD3")) {library(pkg, character.only = TRUE)}
+setwd("~/Documents/nba-teammate-networks/data")
+edgeList <- read_csv("ATL_Network - EdgeList.csv")
+
+```
+
+```{r}
+gD <- igraph::simplify(igraph::graph.data.frame(edgeList, directed=FALSE))
+
+# after creating that network, we need to construct a nodelist (starting at 0 because networkD3 is like that)
+nodeList <- data.frame(ID = c(0:(igraph::vcount(gD) - 1)), Name = igraph::V(gD)$name)
+
+# then we can assign the node names from the edge list to the nodelist 
+getNodeID <- function(x){
+  which(x == igraph::V(gD)$name) - 1 # to ensure that IDs start at 0
+}
+
+# and finally add them to them back to edgelist
+edgeList <- plyr::ddply(edgeList, .variables = c("Source", "Target", "Weight"), 
+                        function (x) data.frame(SourceID = getNodeID(x$Source), 
+                                                TargetID = getNodeID(x$Target)))
+
+# next, we will calculate the degree centrality 
+nodeList <- cbind(nodeList, nodeDegree=igraph::degree(gD, v = igraph::V(gD), mode = "all"))
+
+# we will also calculate the betweenness centrality 
+betAll <- igraph::betweenness(gD, v = igraph::V(gD), directed = FALSE) / 
+  (((igraph::vcount(gD) - 1) * (igraph::vcount(gD)-2)) / 2)
+betAll.norm <- (betAll - min(betAll))/(max(betAll) - min(betAll))
+nodeList <- cbind(nodeList, nodeBetweenness=200*betAll.norm) 
+
+# we also want the dice similarities 
+dsAll <- igraph::similarity.dice(gD, vids = igraph::V(gD), mode = "all")
+F1 <- function(x) {data.frame(diceSim = dsAll[x$SourceID +1, x$TargetID + 1])}
+edgeList <- plyr::ddply(edgeList, .variables=c("Source", "Target", "Weight", "SourceID", "TargetID"), 
+                           function(x) data.frame(F1(x)))
+
+# calculating group membership using cluster_walktrap in igraph  
+wc <- cluster_walktrap(gD)
+members <- membership(wc)
+clusters <- igraph_to_networkD3(gD, group = members)
+nodeList <- cbind(nodeList, cluster=clusters$nodes$group) 
+nodeList <- nodeList %>% 
+  mutate(Label = Name) %>% 
+  select(ID, Label, everything())
+
+# here, we want to add attributes to the nodeList to visualize different dataSources
+#nodeAttributes <- nodeListAttributes %>%
+#  select(name, label, dataSource) 
+#nodeList <- plyr::join(nodeList, nodeAttributes, by="nName")
+nodeList <- nodeList %>% remove_rownames %>% column_to_rownames(var="Name")
+
+# and clean things up a little after we are done 
+rm(betAll, betAll.norm, dsAll, F1, getNodeID, nodeListAttributes, clusters, fn, wc)
+
+```
+
+```{r}
+# modularity analyses 
+wc <- cluster_walktrap(gD)
+modularity(wc)
+members <- membership(wc)
+
+
+
+```
+
+```{r interactive-visualization}
+# creating a color palette for data types 
+cluster_colors <- 'd3.scaleOrdinal() .domain(["1", "2", "3", "4", "5", "6" , "7", "8"])
+                                     .range(["#881234", "#065382", "#128177", "#52BF90", 
+                                             "#2796CE", "#2796CE", "#2796CE", "#2796CE"])'
+
+# visualizing the network 
+fn <- networkD3::forceNetwork(Links = edgeList, 
+                        Nodes = nodeList, 
+                        Source = "SourceID", 
+                        Target = "TargetID", 
+                        Value = "Weight", 
+                        NodeID = "Label", 
+                        Nodesize = "nodeDegree",  
+                        Group = "cluster",  
+                        opacity = 0.9, 
+                        opacityNoHover = 0.05, 
+                        height = 1800, 
+                        width = 2000, 
+                        fontSize = 45, 
+                        fontFamily = "sans-serif",
+                        linkDistance = networkD3::JS("function(d) { return 125*d.value; }"),
+                        zoom = TRUE, 
+                        charge = -300,
+                        colourScale = cluster_colors,  
+                        legend = TRUE) 
+
+htmlwidgets::onRender(
+  fn, 'function(el, x) { 
+    d3.selectAll(".legend")
+    .style("font-size", "27px")
+  }'
+)
+
+```
+
+
+
