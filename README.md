@@ -4,6 +4,14 @@ This objective of this project is to use machine learning to examine trends abou
 
 ### Checklist
 
+Original model takes boxscore college stats (G, GS, MP, FG, FGA, FG%, 2P, 2PA, 2P%, 3P, 3PA, 3P%, FT, FTA, FT%, ORB, DRB, TRB, AST, STL, BLK, TOV, PF, PTS, SOS, Year, Pos, Age) and attempts to predict NBA career outcome to date (NBATRB, NBAAST, NBASTL, NBABLK, NBAPTS). My ultimate goal is to use this for fantasy purposes, which requires changing the outcomes to fantasy points based on different leagues or ranks based on which cats I care about. Moreover, I would want to add information about team situation (past winning percentage, projected winning percentage, average age of team, etc.) as well as player data, including biometrics information, draft position, a proxy for injury information during college or in their early NBA career (e.g. Jay Williams). I'd also want to update the career aspect of these projections. I'm more interested in peak performance as well as peak money value. For example, if a player is performing strongly but is still on a rookie contract, they might have more value in fantasy than someone that outscores them at a higher contract. From past research, I know that future stars on the last two years of their rookie year are the most valuable asset in points leagues, so I would want to hone my model to predict best performance for NBA players in their 2nd-4th years instead of entire career. 
+
+- Add fantasy composites for local cats and points leagues 
+- Add contract values for local leagues (raw money)
+- Develop a new value function that accounts for top-tier players contributing more points at higher contracts 
+- Add all individual player data from each year (and then filter to only include 2nd-4th years)
+- Normalize outcomes based on actual NBA team winning percentage, age, and project winning percentage 
+- Could add in consensus scouting reports (from KOC and other mock drafts listed online)
 
 ### Performance Data  
 
