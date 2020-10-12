@@ -5,12 +5,17 @@ This objective of this project is to use machine learning to examine trends abou
 ### Checklist
 
 
-### Data Discovery 
+### Performance Data  
 
 [NBA Basketball Reference Stats](https://www.kaggle.com/drgilermo/nba-players-stats)
 [Open-Source Sports Professional Baseketball Stats](https://www.kaggle.com/open-source-sports/mens-professional-basketball)
 [Aggregated Kaggle datasets](https://www.kaggle.com/data/52669)
 [Advanced box score and standings (2012-2018)](https://www.kaggle.com/pablote/nba-enhanced-stats#)
+
+### Network Data 
+
+[Pro Sports Transactions Data for Trades Over Time](http://www.prosportstransactions.com/)
+[Potential code for scaping Protransactions data](https://github.com/svitkin/bball-trade-network)
 
 ### Existing Examples 
 
